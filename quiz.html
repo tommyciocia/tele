@@ -26,13 +26,12 @@
         <div style="display:flex;gap:.5rem">
           <button class="btn secondary" onclick="setDiff('easy')" id="d-easy">Facile</button>
           <button class="btn" onclick="setDiff('medium')" id="d-med">Medio</button>
-          <button class="btn secondary" onclick="setDiff('hard')" id="d-hard">Avanzato</button>
+          <button class="btn secondary" onclick="setDiff('hard')" id="d-hard">Difficile</button>
         </div>
       </div>
       <button class="btn secondary" onclick="restart()">↺ Ricomincia</button>
     </div>
 
-    <!-- Progress bar -->
     <div style="background:rgba(255,255,255,.05);border-radius:2px;height:4px;margin-bottom:2rem;overflow:hidden">
       <div id="progress-bar" style="height:100%;background:var(--green);width:0%;transition:width .4s;box-shadow:0 0 8px var(--green)"></div>
     </div>
@@ -45,99 +44,99 @@
     const allQuestions = {
       easy: [
         {
-          q: "Qual è l'uscita di una porta AND con ingressi A=1 e B=0?",
-          opts: ["0","1","X","Non definita"],
-          ans: 0, exp: "AND restituisce 1 solo se ENTRAMBI gli ingressi sono 1. Qui B=0, quindi F=0."
+          q: "Qual è l'uscita di una porta <strong>AND</strong> con A=1 e B=0?",
+          opts: ["0", "1", "Dipende da C", "Non definita"],
+          ans: 0,
+          exp: "AND = 1 solo se tutti gli ingressi sono 1. Poiché B=0, F=0."
         },
         {
-          q: "Qual è l'uscita di una porta OR con A=0 e B=1?",
-          opts: ["0","1","Dipende","Errore"],
-          ans: 1, exp: "OR restituisce 1 se ALMENO UN ingresso è 1. B=1 → F=1."
+          q: "Qual è l'uscita di una porta <strong>OR</strong> con A=0 e B=1?",
+          opts: ["0", "1", "Indefinita", "Errore"],
+          ans: 1,
+          exp: "OR = 1 se almeno un ingresso è 1. B=1 → F=1."
         },
         {
-          q: "La porta NOT con ingresso A=1 restituisce:",
-          opts: ["1","0","A","Non definita"],
-          ans: 1, exp: "NOT inverte il segnale: NOT(1) = 0."
+          q: "La porta <strong>NOT</strong> con ingresso A=1 restituisce:",
+          opts: ["1", "0", "Non definita", "Dipende"],
+          ans: 1,
+          exp: "NOT inverte: NOT(1) = 0."
         },
         {
-          q: "Quante righe ha una tabella di verità con 3 variabili?",
-          opts: ["3","6","8","16"],
-          ans: 2, exp: "Con n variabili ci sono 2ⁿ combinazioni. 2³ = 8 righe."
+          q: "Quante righe ha una tabella di verità con <strong>3 variabili</strong>?",
+          opts: ["3", "6", "8", "16"],
+          ans: 2,
+          exp: "Con n variabili ci sono 2ⁿ righe. 2³ = 8."
         },
         {
-          q: "NAND(1,1) è uguale a:",
-          opts: ["1","0","Indefinito","Uguale ad AND"],
-          ans: 1, exp: "NAND = NOT AND. AND(1,1)=1, NOT(1)=0."
-        },
-        {
-          q: "La forma SOP sta per:",
-          opts: ["Sum Of Products","Signal Output Port","Simple OR Path","None"],
-          ans: 0, exp: "SOP = somma (OR) di prodotti (AND). Es: AB + CD."
-        },
+          q: "La forma <strong>SOP</strong> sta per:",
+          opts: ["Sum Of Products", "Signal Output Port", "Simple OR Path", "Switch On Power"],
+          ans: 0,
+          exp: "SOP = somma (OR) di prodotti (AND). Es: AB + CD."
+        }
       ],
       medium: [
         {
-          q: "La porta XOR con A=1, B=1 restituisce:",
-          opts: ["0","1","2","Dipende"],
-          ans: 0, exp: "XOR = 1 solo se gli ingressi sono DIVERSI. 1⊕1 = 0."
+          q: "La porta <strong>XOR</strong> con A=1 e B=1 restituisce:",
+          opts: ["0", "1", "2", "Non definita"],
+          ans: 0,
+          exp: "XOR = 1 solo se gli ingressi sono DIVERSI. 1⊕1 = 0."
         },
         {
-          q: "Qual è la forma canonica SOP di F con mintermini {1,3}? (2 var: A,B)",
-          opts: ["Ā·B + A·B","A·B̄ + A·B","Ā·B̄ + A·B","A+B"],
-          ans: 0, exp: "m1=ĀB (A=0,B=1), m3=AB (A=1,B=1). Quindi F = ĀB + AB."
+          q: "Applicando <strong>De Morgan</strong> a ¬(A+B) si ottiene:",
+          opts: ["Ā + B̄", "Ā · B̄", "A · B", "A + B"],
+          ans: 1,
+          exp: "De Morgan: ¬(A+B) = Ā·B̄. Il NOT si distribuisce e OR diventa AND."
         },
         {
-          q: "Nella mappa di Karnaugh, un gruppo di 4 celle elimina quante variabili?",
-          opts: ["1","2","3","4"],
-          ans: 1, exp: "Un gruppo di 2ⁿ celle elimina n variabili. 2²=4 celle → elimina 2 var."
+          q: "Nella mappa di Karnaugh, un gruppo di <strong>4 celle</strong> elimina quante variabili?",
+          opts: ["1", "2", "3", "4"],
+          ans: 1,
+          exp: "Un gruppo di 2ⁿ celle elimina n variabili. 2²=4 → elimina 2 variabili."
         },
         {
-          q: "NOR(0,0) è uguale a:",
-          opts: ["0","1","Non definito","Uguale a OR"],
-          ans: 1, exp: "NOR = NOT OR. OR(0,0)=0, NOT(0)=1."
+          q: "Quale proprietà semplifica <strong>AB + AB̄</strong>?",
+          opts: ["De Morgan", "Assorbimento", "Complemento (B+B̄=1)", "Idempotenza"],
+          ans: 2,
+          exp: "AB + AB̄ = A(B+B̄) = A·1 = A. Si usa il complemento."
         },
         {
-          q: "Quale teorema booleano permette di semplificare AB + AB̄?",
-          opts: ["De Morgan","Distributiva","Complemento (A+Ā=1)","Assorbimento"],
-          ans: 2, exp: "AB + AB̄ = A(B+B̄) = A·1 = A. Si usa la proprietà del complemento."
-        },
-        {
-          q: "La mappa di Karnaugh è ordinata secondo il codice:",
-          opts: ["Binario naturale","Gray","BCD","ASCII"],
-          ans: 1, exp: "Il codice Gray garantisce che celle adiacenti differiscano di 1 solo bit."
-        },
+          q: "La mappa di Karnaugh ordina le celle secondo il codice:",
+          opts: ["Binario naturale", "Gray", "BCD", "ASCII"],
+          ans: 1,
+          exp: "Il codice Gray garantisce che celle adiacenti differiscano di 1 solo bit, fondamentale per i raggruppamenti."
+        }
       ],
       hard: [
         {
-          q: "F = Σm(0,2,5,7) con 3 variabili. Quanti mintermini ha?",
-          opts: ["3","4","5","8"],
-          ans: 1, exp: "Σm(0,2,5,7) ha 4 mintermini: 0, 2, 5 e 7."
+          q: "Applicando <strong>De Morgan</strong> a ¬(A·B) si ottiene:",
+          opts: ["Ā · B̄", "Ā + B̄", "A + B", "A · B"],
+          ans: 1,
+          exp: "De Morgan: ¬(A·B) = Ā+B̄. Il NOT si distribuisce e AND diventa OR."
         },
         {
-          q: "Applicando De Morgan a ¬(A+B) otteniamo:",
-          opts: ["Ā+B̄","Ā·B̄","A·B","A+B"],
-          ans: 1, exp: "De Morgan: ¬(A+B) = Ā·B̄. Il NOT si distribuisce e OR diventa AND."
+          q: "Quale porta logica è considerata <strong>universale</strong> (da sola realizza qualsiasi funzione)?",
+          opts: ["AND", "OR", "NAND", "XOR"],
+          ans: 2,
+          exp: "NAND (e NOR) sono porte universali: con sole NAND si costruisce NOT, AND e OR."
         },
         {
-          q: "Quale porta universale da sola può realizzare qualsiasi funzione booleana?",
-          opts: ["AND","OR","NAND","XOR"],
-          ans: 2, exp: "NAND (e NOR) sono porte universali: con sole NAND si costruisce NOT, AND, OR."
+          q: "Il <strong>teorema del consenso</strong> afferma che in AB + ĀC + BC il termine ridondante è:",
+          opts: ["AB", "ĀC", "BC", "Nessuno"],
+          ans: 2,
+          exp: "AB + ĀC + BC = AB + ĀC. Il termine BC (termine di consenso) è ridondante."
         },
         {
-          q: "F = AB + AC + BC. Applicando il teorema del consenso si ottiene:",
-          opts: ["AB+AC","AB+BC","AB + AC","AC+BC"],
-          ans: 0, exp: "Teorema del consenso: AB + AC + BC = AB + AC (BC è ridondante)."
+          q: "Con <strong>4 variabili</strong> la mappa di Karnaugh ha dimensione:",
+          opts: ["2×4", "4×4", "3×4", "2×8"],
+          ans: 1,
+          exp: "4 variabili = 2⁴ = 16 celle → mappa 4×4."
         },
         {
-          q: "Con 4 variabili, la mappa di Karnaugh ha dimensione:",
-          opts: ["2×4","4×4","3×4","2×8"],
-          ans: 1, exp: "4 variabili = 2⁴ = 16 celle → mappa 4×4."
-        },
-        {
-          q: "La forma POS (Product of Sums) usa i:",
-          opts: ["Mintermini","Maxtermini","Entrambi","Nessuno"],
-          ans: 1, exp: "POS usa i maxtermini (celle con F=0 nella tabella di verità)."
-        },
+          q: "La forma <strong>POS</strong> (Product of Sums) si costruisce a partire dai:",
+          opts: ["Mintermini (F=1)", "Maxtermini (F=0)", "Entrambi", "Nessuno dei due"],
+          ans: 1,
+          exp: "POS usa i maxtermini: le combinazioni dove F=0 nella tabella di verità."
+        }
       ]
     };
 
@@ -149,25 +148,25 @@
 
     function setDiff(d) {
       diff = d;
-      ['easy','medium','hard'].forEach(x => {
-        document.getElementById(`d-${x.slice(0,4)}`).className = x===d ? 'btn' : 'btn secondary';
-      });
+      document.getElementById('d-easy').className = d==='easy' ? 'btn' : 'btn secondary';
+      document.getElementById('d-med').className  = d==='medium' ? 'btn' : 'btn secondary';
+      document.getElementById('d-hard').className = d==='hard' ? 'btn' : 'btn secondary';
       restart();
     }
 
     function restart() {
       current = 0; score = 0; answered = false;
       questions = shuffle([...allQuestions[diff]]);
-      document.getElementById('result-container').style.display='none';
-      document.getElementById('quiz-container').style.display='block';
+      document.getElementById('result-container').style.display = 'none';
+      document.getElementById('quiz-container').style.display = 'block';
       updateScore();
       renderQuestion();
     }
 
     function shuffle(arr) {
-      for (let i=arr.length-1;i>0;i--) {
-        const j=Math.floor(Math.random()*(i+1));
-        [arr[i],arr[j]]=[arr[j],arr[i]];
+      for (let i = arr.length-1; i > 0; i--) {
+        const j = Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]] = [arr[j],arr[i]];
       }
       return arr;
     }
@@ -208,7 +207,7 @@
       if (correct) score++;
       current++;
 
-      document.querySelectorAll('.quiz-opt').forEach((b,i) => {
+      document.querySelectorAll('.quiz-opt').forEach((b, i) => {
         b.disabled = true;
         if (i === q.ans) b.classList.add('correct');
         else if (i === idx && !correct) b.classList.add('wrong');
@@ -217,35 +216,32 @@
       const fb = document.getElementById('feedback');
       fb.style.display = 'block';
       fb.className = `quiz-feedback ${correct?'ok':'ko'}`;
-      fb.innerHTML = `${correct?'✓ Corretto!':'✗ Sbagliato!'} — ${q.exp}`;
+      fb.innerHTML = `${correct ? '✓ Corretto!' : '✗ Sbagliato!'} — ${q.exp}`;
 
       updateScore();
-
-      setTimeout(() => renderQuestion(), 2200);
+      setTimeout(() => renderQuestion(), 2400);
     }
 
     function showResult() {
       document.getElementById('quiz-container').style.display = 'none';
       document.getElementById('progress-bar').style.width = '100%';
-      const pct = Math.round((score/questions.length)*100);
-      const msg = pct===100 ? 'Perfetto! Sei un esperto!' : pct>=70 ? 'Ottimo lavoro!' : pct>=50 ? 'Non male, riprova!' : 'Studia ancora un po\'!';
-      const col = pct>=70 ? 'var(--green)' : pct>=50 ? 'var(--orange)' : 'var(--red)';
+      const pct = Math.round((score / questions.length) * 100);
+      const msg = pct === 100 ? '🏆 Perfetto!' : pct >= 80 ? 'Ottimo lavoro!' : pct >= 60 ? 'Non male, riprova!' : 'Studia ancora un po\'!';
+      const col = pct >= 60 ? 'var(--green)' : pct >= 40 ? 'var(--orange)' : 'var(--red)';
 
-      document.getElementById('result-container').style.display='block';
+      document.getElementById('result-container').style.display = 'block';
       document.getElementById('result-container').innerHTML = `
         <div class="quiz-card" style="text-align:center;border-color:${col}">
           <div style="font-family:var(--font-display);font-size:3rem;color:${col};margin-bottom:.5rem">${score}/${questions.length}</div>
-          <div style="font-size:1.1rem;color:#fff;margin-bottom:.5rem">${msg}</div>
-          <div style="color:var(--text-dim);margin-bottom:1.5rem">${pct}% corretto · difficoltà: ${diff}</div>
-          <button class="btn" onclick="restart()">↺ Gioca ancora</button>
+          <div style="font-size:1.1rem;color:#fff;margin-bottom:.4rem">${msg}</div>
+          <div style="color:var(--text-dim);margin-bottom:1.5rem">${pct}% corretto · ${diff}</div>
+          <button class="btn" onclick="restart()">↺ Rigioca</button>
           <a href="index.html" class="btn secondary" style="margin-left:.8rem;display:inline-block;text-decoration:none">← Home</a>
         </div>
       `;
     }
 
-    window.onload = () => {
-      setDiff('medium');
-    };
+    window.onload = () => setDiff('medium');
   </script>
 </body>
 </html>
