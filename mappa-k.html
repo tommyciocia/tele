@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mappa K – LogicLab</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+ 
+  <header class="page-header">
+    <a href="index.html" class="back-btn">← Home</a>
+    <span class="page-title">⊞ Mappa di Karnaugh</span>
+  </header>
+ 
+  <div class="section">
+    <div class="info-box">
+      <strong>Clicca sulle celle</strong> per attivare i mintermini (1) o inserisci la lista qui sotto. Le celle arancioni sono i gruppi ottimali trovati automaticamente.
+    </div>
+ 
+    <div class="input-group">
+      <label style="color:var(--text-dim);font-size:.85rem;">Variabili:</label>
+      <select id="nvars" onchange="buildMap()">
+        <option value="3" selected>3 var (A,B,C)</option>
+        <option value="4">4 var (A,B,C,D)</option>
+      </select>
+      <input type="text" id="mint-input" placeholder="es. 0,1,2,3" style="width:180px">
+      <button class="btn" onclick="loadFromInput()">Carica</button>
+      <button class="btn secondary" onclick="clearMap()">Pulisci</button>
+    </div>
+ 
+    <div class="kmap-container" id="kmap-container"></div>
+ 
+    <div id="groups-out" style="margin-top:1.5rem; display:none">
+      <h2>Gruppi trovati</h2>
+      <div id="groups-list"></div>
+      <h2 style="margin-top:1.2rem">Espressione semplificata</h2>
+      <div class="formula" id="simplified-out"></div>
+    </div>
+  </div>
+ 
+  <script>
+    // Gray code order for Karnaugh map
+    const gray2 = [0,1,3,2]; // 00,01,11,10
+    const gray3col = [0,1,3,2]; // per BC
+    const gray4col = [0,1,3,2];
+    const gray4row = [0,1,3,2]; // per AB
+ 
+    let cells3 = new Array(8).fill(0);  // 3 var: 2 rows x 4 cols
+    let cells4 = new Array(16).fill(0); // 4 var: 4 rows x 4 cols
+ 
+    function buildMap() {
+      const n = parseInt(document.getElementById('nvars').value);
+      n === 3 ? buildMap3() : buildMap4();
+    }
+ 
+    function toggle(idx) {
+      const n = parseInt(document.getElementById('nvars').value);
+      if (n === 3) {
+        cells3[idx] ^= 1;
+      } else {
+        cells4[idx] ^= 1;
+      }
+      buildMap();
+    }
+ 
+    function buildMap3() {
+      // Rows: A=0,1 | Cols: BC = 00,01,11,10
+      // minterm = A*4 + B*2 + C
+      let html = `<table class="kmap"><thead><tr>
+        <th>A \\ BC</th><th>00</th><th>01</th><th>11</th><th>10</th>
+      </tr></thead><tbody>`;
+ 
+      for (let a = 0; a < 2; a++) {
+        html += `<tr><th>A=${a}</th>`;
+        for (const bc of gray3col) {
+          const b = (bc >> 1) & 1;
+          const c = bc & 1;
+          const idx = a*4 + b*2 + c;
+          const val = cells3[idx];
+          const cls = val ? 'active' : '';
+          html += `<td class="${cls}" onclick="toggle(${idx})" title="m${idx}: A=${a},B=${b},C=${c}">${val}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      document.getElementById('kmap-container').innerHTML = html;
+      computeGroups3();
+    }
+ 
+    function buildMap4() {
+      // Rows: CD | Cols: AB
+      let html = `<table class="kmap"><thead><tr>
+        <th>CD \\ AB</th><th>00</th><th>01</th><th>11</th><th>10</th>
+      </tr></thead><tbody>`;
+ 
+      for (const cd of gray4col) {
+        const c = (cd >> 1) & 1, d = cd & 1;
+        html += `<tr><th>${c}${d}</th>`;
+        for (const ab of gray4row) {
+          const a = (ab >> 1) & 1, b = ab & 1;
+          const idx = a*8 + b*4 + c*2 + d;
+          const val = cells4[idx];
+          const cls = val ? 'active' : '';
+          html += `<td class="${cls}" onclick="toggle(${idx})" title="m${idx}: A=${a},B=${b},C=${c},D=${d}">${val}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      document.getElementById('kmap-container').innerHTML = html;
+      computeGroups4();
+    }
+ 
+    function computeGroups3() {
+      const ones = cells3.map((v,i)=>v?i:null).filter(x=>x!==null);
+      if (ones.length === 0) { document.getElementById('groups-out').style.display='none'; return; }
+ 
+      const terms = [];
+      // Check group of 4 (all same A or all BC pattern)
+      // Simple heuristic: try adjacent pairs and quads
+      const uncovered = new Set(ones);
+      const groups = [];
+ 
+      // Neighbours in 3-var KMap
+      const neighbours3 = {
+        0:[1,2,4], 1:[0,3,5], 2:[0,3,6], 3:[1,2,7],
+        4:[0,5,6], 5:[1,4,7], 6:[2,4,7], 7:[3,5,6]
+      };
+ 
+      // Find pairs
+      ones.forEach(m => {
+        (neighbours3[m]||[]).forEach(nb => {
+          if (cells3[nb] && !groups.find(g=>g.includes(m)&&g.includes(nb))) {
+            groups.push([m, nb]);
+          }
+        });
+      });
+ 
+      // Simplify terms from groups
+      const varNames = ['A','B','C'];
+      const result = groups.map(g => simplifyGroup(g, 3, varNames));
+      ones.forEach(m => {
+        if (!groups.flat().includes(m)) {
+          result.push(mintermsToTerm([m], 3, varNames));
+        }
+      });
+ 
+      const unique = [...new Set(result)];
+      showGroups(unique, ones);
+    }
+ 
+    function computeGroups4() {
+      const ones = cells4.map((v,i)=>v?i:null).filter(x=>x!==null);
+      if (ones.length === 0) { document.getElementById('groups-out').style.display='none'; return; }
+      const varNames = ['A','B','C','D'];
+      const terms = ones.map(m => mintermsToTerm([m], 4, varNames));
+      showGroups([...new Set(terms)], ones);
+    }
+ 
+    function mintermsToTerm(group, n, varNames) {
+      // Find which variables are constant across the group
+      const term = [];
+      for (let bit = n-1; bit >= 0; bit--) {
+        const vals = group.map(m => (m >> bit) & 1);
+        if (vals.every(v => v === 1)) term.push(varNames[n-1-bit]);
+        else if (vals.every(v => v === 0)) term.push(varNames[n-1-bit] + '̄');
+      }
+      return term.join('·') || '1';
+    }
+ 
+    function simplifyGroup(group, n, varNames) {
+      return mintermsToTerm(group, n, varNames);
+    }
+ 
+    function showGroups(terms, ones) {
+      const out = document.getElementById('groups-out');
+      out.style.display = 'block';
+      const list = document.getElementById('groups-list');
+      list.innerHTML = terms.map((t,i) =>
+        `<div class="gate-pill" style="margin:.3rem;display:inline-block">Gruppo ${i+1}: <code style="color:var(--orange)">${t}</code></div>`
+      ).join('');
+      document.getElementById('simplified-out').textContent = `F = ${terms.join(' + ')}`;
+    }
+ 
+    function loadFromInput() {
+      const n = parseInt(document.getElementById('nvars').value);
+      const max = n === 3 ? 8 : 16;
+      const vals = document.getElementById('mint-input').value
+        .split(',').map(s=>parseInt(s.trim())).filter(x=>!isNaN(x)&&x>=0&&x<max);
+      if (n === 3) {
+        cells3 = new Array(8).fill(0);
+        vals.forEach(v => cells3[v] = 1);
+      } else {
+        cells4 = new Array(16).fill(0);
+        vals.forEach(v => cells4[v] = 1);
+      }
+      buildMap();
+    }
+ 
+    function clearMap() {
+      cells3 = new Array(8).fill(0);
+      cells4 = new Array(16).fill(0);
+      document.getElementById('groups-out').style.display = 'none';
+      buildMap();
+    }
+ 
+    window.onload = () => {
+      cells3[1]=cells3[3]=cells3[5]=cells3[7]=1;
+      buildMap();
+    };
+  </script>
+</body>
+</html>
+ 

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Circuito – LogicLab</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+  <header class="page-header">
+    <a href="index.html" class="back-btn">← Home</a>
+    <span class="page-title">⌗ Circuito Logico</span>
+  </header>
+  <div class="section">
+    <div class="info-box">
+      <strong>Visualizzatore circuiti:</strong> Scegli una porta logica o un circuito combinatorio. Clicca sugli ingressi per cambiarli e vedi l'uscita in tempo reale.
+    </div>
+    <div class="input-group">
+      <label style="color:var(--text-dim);font-size:.85rem;">Circuito:</label>
+      <select id="circuit-sel" onchange="drawCircuit()">
+        <option value="and">AND gate</option>
+        <option value="or">OR gate</option>
+        <option value="not">NOT gate</option>
+        <option value="nand">NAND gate</option>
+        <option value="nor">NOR gate</option>
+        <option value="xor">XOR gate</option>
+        <option value="combo" selected>Combinatorio: F = A·B + C̄</option>
+      </select>
+    </div>
+    <svg id="circuit-svg" class="circuit-svg" width="700" height="320" viewBox="0 0 700 320" style="width:100%;max-width:700px"></svg>
+    <div id="circuit-info" style="margin-top:1rem"></div>
+  </div>
+
+  <script>
+    const svg = document.getElementById('circuit-svg');
+    let inputs = { A:0, B:0, C:0 };
+
+    function SVG(tag, attrs={}, text='') {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k,v] of Object.entries(attrs)) el.setAttribute(k,v);
+      if (text) el.textContent = text;
+      return el;
+    }
+
+    function wire(x1,y1,x2,y2,active=false) {
+      return SVG('polyline',{
+        points:`${x1},${y1} ${x2},${y2}`,
+        stroke: active ? '#00ff9d' : '#2a4a5a',
+        'stroke-width': active ? 2.5 : 1.5,
+        fill:'none',
+        filter: active ? 'url(#glow)' : ''
+      });
+    }
+
+    function inputBtn(x, y, label, val, key) {
+      const g = SVG('g',{ cursor:'pointer', onclick:`toggleInput('${key}')` });
+      g.appendChild(SVG('rect',{ x:x-25, y:y-18, width:50, height:36, rx:4,
+        fill: val ? 'rgba(0,255,157,0.2)' : 'rgba(0,0,0,0.4)',
+        stroke: val ? '#00ff9d' : '#2a4a5a', 'stroke-width':1.5 }));
+      g.appendChild(SVG('text',{ x, y:y-4, 'text-anchor':'middle', fill:'#8ab', 'font-size':11, 'font-family':'Share Tech Mono' }, label));
+      g.appendChild(SVG('text',{ x, y:y+13, 'text-anchor':'middle',
+        fill: val ? '#00ff9d' : '#5a7a8a', 'font-size':16, 'font-weight':'bold','font-family':'Share Tech Mono' }, String(val)));
+      return g;
+    }
+
+    function outputBox(x, y, val) {
+      const g = SVG('g');
+      g.appendChild(SVG('rect',{ x:x-25, y:y-22, width:50, height:44, rx:4,
+        fill: val ? 'rgba(0,255,157,0.25)' : 'rgba(255,45,85,0.1)',
+        stroke: val ? '#00ff9d' : '#ff2d55', 'stroke-width':2 }));
+      g.appendChild(SVG('text',{ x, y:y-6, 'text-anchor':'middle', fill:'#8ab', 'font-size':11, 'font-family':'Share Tech Mono' },'OUT'));
+      g.appendChild(SVG('text',{ x, y:y+14, 'text-anchor':'middle',
+        fill: val ? '#00ff9d' : '#ff2d55', 'font-size':20, 'font-weight':'bold','font-family':'Share Tech Mono' }, String(val)));
+      return g;
+    }
+
+    // Gate shape paths
+    function andGate(cx, cy, w=70, h=50) {
+      const l=cx-w/2, r=cx+w/2, t=cy-h/2, b=cy+h/2;
+      return `M${l},${t} L${cx},${t} A${h/2},${h/2} 0 0 1 ${cx},${b} L${l},${b} Z`;
+    }
+    function orGate(cx, cy, w=70, h=50) {
+      const l=cx-w/2, r=cx+w/2, t=cy-h/2, b=cy+h/2;
+      return `M${l},${t} Q${l+20},${cy} ${l},${b} Q${cx},${b} ${r},${cy} Q${cx},${t} ${l},${t} Z`;
+    }
+    function notGate(cx, cy, w=55, h=44) {
+      const l=cx-w/2, t=cy-h/2, b=cy+h/2;
+      return `M${l},${t} L${l+w-12},${cy} L${l},${b} Z`;
+    }
+
+    function drawGateShape(type, cx, cy, active) {
+      const stroke = active ? '#00ff9d' : '#3a6a8a';
+      const fill = active ? 'rgba(0,255,157,0.08)' : 'rgba(0,20,40,0.8)';
+      let path, extra=null;
+      if (type==='and'||type==='nand') {
+        path = andGate(cx,cy);
+      } else if (type==='or'||type==='nor'||type==='xor') {
+        path = orGate(cx,cy);
+      } else if (type==='not') {
+        path = notGate(cx,cy);
+      }
+      const el = SVG('path',{ d:path, stroke, 'stroke-width':2, fill });
+      const group = SVG('g');
+      group.appendChild(el);
+      if (type==='xor') {
+        const l=cx-35, t=cy-25, b=cy+25;
+        group.appendChild(SVG('path',{ d:`M${l-6},${t} Q${l+8},${cy} ${l-6},${b}`, stroke, 'stroke-width':2, fill:'none' }));
+      }
+      if (type==='nand'||type==='nor'||type==='not') {
+        const dotX = type==='not' ? cx+30 : cx+37;
+        group.appendChild(SVG('circle',{ cx:dotX, cy, r:5, stroke, 'stroke-width':2, fill:'var(--bg)' }));
+      }
+      const label = type.toUpperCase();
+      group.appendChild(SVG('text',{ x:cx-(type==='not'?8:0), y:cy+5, 'text-anchor':'middle', fill: active?'#00ff9d':'#5a9aba', 'font-size':11, 'font-family':'Share Tech Mono' }, label));
+      return group;
+    }
+
+    function clearSVG() {
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      // Glow filter
+      const defs = SVG('defs');
+      const filter = SVG('filter',{ id:'glow' });
+      const blur = SVG('feGaussianBlur',{ stdDeviation:'3', result:'coloredBlur' });
+      const merge = SVG('feMerge');
+      merge.appendChild(SVG('feMergeNode',{ in:'coloredBlur' }));
+      merge.appendChild(SVG('feMergeNode',{ in:'SourceGraphic' }));
+      filter.appendChild(blur);
+      filter.appendChild(merge);
+      defs.appendChild(filter);
+      svg.appendChild(defs);
+    }
+
+    function drawSingleGate(type) {
+      const A = inputs.A, B = inputs.B;
+      let out;
+      if (type==='and') out = A&B;
+      else if (type==='or') out = A|B;
+      else if (type==='nand') out = +(!(A&B));
+      else if (type==='nor') out = +(!(A|B));
+      else if (type==='xor') out = A^B;
+      else if (type==='not') out = A^1;
+
+      clearSVG();
+      const isSingle = type==='not';
+      const cx=350, cy=160;
+
+      if (!isSingle) {
+        svg.appendChild(inputBtn(80, 130, 'A', A, 'A'));
+        svg.appendChild(inputBtn(80, 190, 'B', B, 'B'));
+        svg.appendChild(wire(105,130,cx-35,130, A));
+        svg.appendChild(wire(105,190,cx-35,190, B));
+        svg.appendChild(wire(cx-35,130,cx-35,cy-12,A));
+        svg.appendChild(wire(cx-35,190,cx-35,cy+12,B));
+        svg.appendChild(wire(cx-35,cy-12,cx-35+2,cy-12,A));
+        svg.appendChild(wire(cx-35,cy+12,cx-35+2,cy+12,B));
+      } else {
+        svg.appendChild(inputBtn(80, 160, 'A', A, 'A'));
+        svg.appendChild(wire(105,160,cx-28,160, A));
+      }
+
+      svg.appendChild(drawGateShape(type, cx, cy, out));
+      const outX = type==='not' ? cx+33 : (type==='nand'||type==='nor' ? cx+42 : cx+37);
+      svg.appendChild(wire(outX, cy, 590, cy, out));
+      svg.appendChild(outputBox(620, cy, out));
+
+      const expr = { and:'F = A · B', or:'F = A + B', nand:'F = ¬(A · B)', nor:'F = ¬(A + B)', xor:'F = A ⊕ B', not:'F = Ā' };
+      document.getElementById('circuit-info').innerHTML = `<div class="formula">${expr[type]} = <strong>${out}</strong></div>`;
+    }
+
+    function drawCombo() {
+      // F = A·B + C̄
+      const A=inputs.A, B=inputs.B, C=inputs.C;
+      const ab = A&B;
+      const nc = C^1;
+      const out = ab|nc;
+
+      clearSVG();
+
+      // AND gate for A·B
+      svg.appendChild(inputBtn(60,90,'A',A,'A'));
+      svg.appendChild(inputBtn(60,150,'B',B,'B'));
+      svg.appendChild(inputBtn(60,240,'C',C,'C'));
+
+      // NOT gate for C̄
+      svg.appendChild(wire(85,240,220,240,C));
+      const notG = SVG('g');
+      notG.appendChild(SVG('path',{d:'M220,220 L255,240 L220,260 Z', stroke:nc?'#00ff9d':'#3a6a8a','stroke-width':2,fill:'rgba(0,20,40,0.8)'}));
+      notG.appendChild(SVG('circle',{cx:260,cy:240,r:5,stroke:nc?'#00ff9d':'#3a6a8a','stroke-width':2,fill:'var(--bg)'}));
+      notG.appendChild(SVG('text',{x:237,y:244,'text-anchor':'middle',fill:'#5a9aba','font-size':10,'font-family':'Share Tech Mono'},'NOT'));
+      svg.appendChild(notG);
+
+      // AND gate
+      svg.appendChild(wire(85,90,220,90,A));
+      svg.appendChild(wire(85,150,220,150,B));
+      svg.appendChild(wire(220,90,222,90,A));
+      svg.appendChild(wire(220,150,222,150,B));
+      svg.appendChild(drawGateShape('and',270,120,ab));
+      svg.appendChild(wire(305,120,360,120,ab));
+
+      // OR gate
+      svg.appendChild(wire(265,240,360,190,nc));
+      svg.appendChild(wire(360,120,362,120,ab));
+      svg.appendChild(wire(360,190,362,190,nc));
+      svg.appendChild(drawGateShape('or',410,155,out));
+      svg.appendChild(wire(445,155,570,155,out));
+      svg.appendChild(outputBox(600,155,out));
+
+      document.getElementById('circuit-info').innerHTML =
+        `<div class="formula">F = A·B + C̄ = ${A}·${B} + ${nc} = ${ab} + ${nc} = <strong>${out}</strong></div>
+         <p style="color:var(--text-dim);font-size:.82rem;margin-top:.5rem">Cliccca sugli ingressi per cambiarli</p>`;
+    }
+
+    function drawCircuit() {
+      const sel = document.getElementById('circuit-sel').value;
+      if (sel==='combo') drawCombo();
+      else drawSingleGate(sel);
+    }
+
+    function toggleInput(key) {
+      inputs[key] ^= 1;
+      drawCircuit();
+    }
+
+    window.onload = () => drawCircuit();
+  </script>
+</body>
+</html>

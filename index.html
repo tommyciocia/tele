@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LogicLab – Porte Logiche</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+
+  <header>
+    <div class="logo">
+      <span class="logo-icon">⊕</span>
+      <span class="logo-text">Logic<strong>Lab</strong></span>
+    </div>
+    <p class="subtitle">Esercitazione Porte Logiche – Elettronica Digitale</p>
+  </header>
+
+  <main class="hero">
+    <div class="hero-text">
+      <h1>Dalla Forma Canonica<br>al Circuito Ottimizzato</h1>
+      <p>Un percorso interattivo step-by-step: inserisci la tua espressione booleana e ottieni tabella di verità, mappa K, semplificazione e circuito logico.</p>
+    </div>
+
+    <nav class="cards-grid">
+      <a href="tabella.html" class="card" data-num="01">
+        <div class="card-icon">▦</div>
+        <h2>Tabella di Verità</h2>
+        <p>Genera la tabella da una forma canonica SOP/POS</p>
+        <span class="arrow">→</span>
+      </a>
+      <a href="mappa-k.html" class="card" data-num="02">
+        <div class="card-icon">⊞</div>
+        <h2>Mappa di Karnaugh</h2>
+        <p>Visualizza e raggruppa i mintermini/maxtermini</p>
+        <span class="arrow">→</span>
+      </a>
+      <a href="semplificazione.html" class="card" data-num="03">
+        <div class="card-icon">∑</div>
+        <h2>Semplificazione</h2>
+        <p>Forma canonica → espressione minima</p>
+        <span class="arrow">→</span>
+      </a>
+      <a href="circuito.html" class="card" data-num="04">
+        <div class="card-icon">⌗</div>
+        <h2>Circuito Logico</h2>
+        <p>Visualizza il circuito a porte logiche SVG</p>
+        <span class="arrow">→</span>
+      </a>
+      <a href="quiz.html" class="card" data-num="05">
+        <div class="card-icon">◈</div>
+        <h2>Quiz Interattivo</h2>
+        <p>Multimedialità – metti alla prova le tue conoscenze</p>
+        <span class="arrow">→</span>
+      </a>
+    </nav>
+
+    <div class="quick-ref">
+      <h3>Riferimento Rapido – Porte Logiche</h3>
+      <div class="gates-row">
+        <div class="gate-pill">AND <code>A·B</code></div>
+        <div class="gate-pill">OR <code>A+B</code></div>
+        <div class="gate-pill">NOT <code>Ā</code></div>
+        <div class="gate-pill">NAND <code>A·B̄</code></div>
+        <div class="gate-pill">NOR <code>A+B̄</code></div>
+        <div class="gate-pill">XOR <code>A⊕B</code></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Elettronica Digitale · Consegna 4 Maggio · David Volpi</p>
+  </footer>
+</body>
+</html>
