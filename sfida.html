@@ -1,0 +1,127 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sfida Logica - LogicLab</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="noise"></div>
+
+  <header class="page-header">
+    <a href="index.html" class="back-btn">← Home</a>
+    <span class="page-title">⚡ Sfida Logica</span>
+  </header>
+
+  <div class="section">
+    <div class="info-box">
+      <strong>Come funziona:</strong> osserva la mini tabella di verità e scegli quale porta la realizza.
+    </div>
+
+    <div class="quiz-card">
+      <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem">
+        <div><strong style="color:var(--green)">Punteggio:</strong> <span id="score">0</span></div>
+        <div><strong style="color:var(--cyan)">Round:</strong> <span id="round">1</span>/10</div>
+      </div>
+
+      <table class="truth-table" id="challenge-table"></table>
+
+      <div class="challenge-options" id="opts"></div>
+      <div id="fb" class="quiz-feedback" style="display:none"></div>
+      <div style="margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn" onclick="nextRound()">Prossimo</button>
+        <button class="btn secondary" onclick="restartGame()">Ricomincia</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const gates = {
+      AND: (a,b)=>a&b,
+      OR: (a,b)=>a|b,
+      XOR: (a,b)=>a^b,
+      NAND: (a,b)=>+(!(a&b)),
+      NOR: (a,b)=>+(!(a|b))
+    };
+
+    let score = 0;
+    let round = 1;
+    let currentGate = '';
+    let answered = false;
+    let roundSequence = [];
+
+    function makeTable(fn) {
+      const rows = [[0,0],[0,1],[1,0],[1,1]];
+      let html = '<thead><tr><th>A</th><th>B</th><th>F</th></tr></thead><tbody>';
+      rows.forEach(([a,b]) => {
+        const f = fn(a,b);
+        html += `<tr><td>${a}</td><td>${b}</td><td class="${f?'one':'zero'}">${f}</td></tr>`;
+      });
+      html += '</tbody>';
+      document.getElementById('challenge-table').innerHTML = html;
+    }
+
+    function shuffled(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function buildRoundSequence() {
+      const names = Object.keys(gates);
+      const base = names.concat(names); // 5 porte x 2 = 10 round
+      roundSequence = shuffled(base);
+    }
+
+    function nextRound() {
+      if (round > 10) return;
+      answered = false;
+      const names = Object.keys(gates);
+      currentGate = roundSequence[round - 1];
+      makeTable(gates[currentGate]);
+
+      const opts = shuffled(names).map(name =>
+        `<button class="quiz-opt" onclick="answer('${name}')">${name}</button>`
+      ).join('');
+      document.getElementById('opts').innerHTML = opts;
+      const fb = document.getElementById('fb');
+      fb.style.display = 'none';
+      document.getElementById('round').textContent = round;
+    }
+
+    function answer(name) {
+      if (answered || round > 10) return;
+      answered = true;
+      const ok = name === currentGate;
+      if (ok) score++;
+
+      const fb = document.getElementById('fb');
+      fb.style.display = 'block';
+      fb.className = `quiz-feedback ${ok ? 'ok' : 'ko'}`;
+      fb.textContent = ok ? `Corretto! Era ${currentGate}.` : `No, era ${currentGate}.`;
+      document.getElementById('score').textContent = score;
+
+      round++;
+      if (round > 10) {
+        document.getElementById('fb').textContent += ` Fine sfida: ${score}/10.`;
+      }
+    }
+
+    function restartGame() {
+      score = 0;
+      round = 1;
+      buildRoundSequence();
+      document.getElementById('score').textContent = score;
+      nextRound();
+    }
+
+    window.onload = restartGame;
+  </script>
+</body>
+</html>

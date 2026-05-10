@@ -293,3 +293,105 @@ footer {
 @media (max-width: 480px) {
   .cards-grid { grid-template-columns: 1fr; }
 }
+
+/* ===== MULTIMEDIA ===== */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.media-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 1rem;
+}
+.media-card.wide { grid-column: 1 / -1; }
+.media-card h2 {
+  margin-bottom: .6rem;
+}
+.media-card p {
+  font-size: .9rem;
+}
+.media-frame-wrap {
+  margin-top: .8rem;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(0,0,0,.45);
+}
+.media-frame {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+}
+.audio-panel {
+  display: grid;
+  gap: .8rem;
+  margin-top: .8rem;
+}
+.audio-panel audio {
+  width: 100%;
+  filter: hue-rotate(120deg) saturate(1.1);
+}
+.hint {
+  color: var(--text-dim);
+  font-size: .78rem;
+  margin: 0;
+}
+.steps-row {
+  margin-top: .8rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .6rem;
+}
+.step-box {
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 3px;
+  padding: .7rem;
+  background: rgba(0,0,0,.25);
+}
+.step-box span {
+  display: inline-block;
+  font-family: var(--font-display);
+  color: var(--orange);
+  margin-bottom: .4rem;
+}
+.step-box p {
+  margin: 0;
+  font-size: .8rem;
+  line-height: 1.4;
+}
+.deliver-list {
+  margin-top: .8rem;
+  display: grid;
+  gap: .5rem;
+  list-style: none;
+}
+.deliver-list li {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: rgba(0,0,0,.2);
+  border: 1px solid rgba(255,255,255,.06);
+  padding: .55rem .7rem;
+  border-radius: 3px;
+  color: var(--text);
+  font-size: .86rem;
+}
+.deliver-list input[type="checkbox"] {
+  accent-color: var(--green);
+}
+
+@media (max-width: 768px) {
+  .media-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.challenge-options {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: .6rem;
+}
